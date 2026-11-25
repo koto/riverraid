@@ -165,7 +165,7 @@ export class Game {
     this.audio.engine(false);
     this.audio.laser(false);
     this.audio.stopMusic();
-    const best = this.score > this.hiscore;
+    const best = !this.god && this.score > this.hiscore;
     if (best) {
       this.hiscore = this.score;
       localStorage.setItem('rr_hiscore', String(this.score));
