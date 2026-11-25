@@ -16,8 +16,10 @@ npm run dev        # http://localhost:5173
 npm run build      # production build in dist/
 ```
 
-Every push to `main` is deployed to GitHub Pages by `.github/workflows/deploy.yml`
-(enable it under *Settings → Pages → Source: GitHub Actions*).
+**Play online: https://koto.github.io/riverraid/**
+
+Every push to `main` is built by `.github/workflows/deploy.yml` and published to the `gh-pages` branch
+(served by GitHub Pages; if needed set *Settings → Pages → Source* to the `gh-pages` branch).
 
 ## Controls
 
