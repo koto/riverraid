@@ -253,7 +253,7 @@ export class Turret extends Entity {
       this.fireCd -= dt;
       if (this.fireCd <= 0) {
         this.game.enemyFire(this.x, this.y + 1.6, this.z);
-        this.fireCd = lerp(2.4, 1.1, this.diff) * (0.8 + Math.random() * 0.4);
+        this.fireCd = lerp(2.8, 1.2, this.diff) * (0.8 + Math.random() * 0.4);
         this.game.effects.sparks(this.x - Math.sin(this.head.rotation.y) * 3, this.y + 1.6, this.z - Math.cos(this.head.rotation.y) * 3, 4, 0xff5533, 6);
       }
     }
@@ -362,7 +362,7 @@ export class Boss extends Entity {
     this.hx = 6.5;
     this.hz = 17;
     this.index = index;
-    this.setHp(260 + index * 160);
+    this.setHp(200 + index * 150);
     this.score = 5000 + index * 2500;
     this.boom = 4;
     this.dropChance = 0;
@@ -417,28 +417,29 @@ export class Boss extends Entity {
     if (this.shotT > 0 || this.pattern < 0) return;
     if (this.pattern === 0) {
       const pos = this.turretPos(this.shotN % 3);
-      g.enemyFire(pos.x, CFG.PLAYER_Y, pos.z, { speed: 62 + this.index * 6 });
+      g.enemyFire(pos.x, CFG.PLAYER_Y, pos.z, { speed: 48 + this.index * 6 });
       this.shotN++;
-      this.shotT = 0.2 * rate;
+      this.shotT = (this.shotN % 3 === 0 ? 0.75 : 0.16) * rate;
     } else if (this.pattern === 1) {
-      const n = 9 + this.index * 2;
+      const n = 7 + this.index * 2;
       const base = Math.atan2(p.x - this.x, p.z - (this.z + 16));
       const off = this.shotN % 2 ? 0.06 : -0.06;
       for (let i = 0; i < n; i++) {
-        const a = base + off + (i / (n - 1) - 0.5) * 1.8;
-        g.spawnEnemyBullet(this.x, CFG.PLAYER_Y, this.z + 17, Math.sin(a) * 42, Math.cos(a) * 42, {});
+        const a = base + off + (i / (n - 1) - 0.5) * 1.6;
+        const bs = 32 + this.index * 5;
+        g.spawnEnemyBullet(this.x, CFG.PLAYER_Y, this.z + 17, Math.sin(a) * bs, Math.cos(a) * bs, {});
       }
       g.audio.enemyShot();
       this.shotN++;
-      this.shotT = 1.0 * rate;
+      this.shotT = 1.25 * rate;
     } else {
       for (const i of [1, 2]) {
         const pos = this.turretPos(i);
-        g.spawnEnemyBullet(pos.x, CFG.PLAYER_Y, pos.z, (i === 1 ? -1 : 1) * 14, 22, { homing: true, life: 5 });
+        g.spawnEnemyBullet(pos.x, CFG.PLAYER_Y, pos.z, (i === 1 ? -1 : 1) * 14, 22, { homing: true, life: 3.6 });
       }
       g.audio.missile();
       this.shotN++;
-      this.shotT = 0.85 * rate;
+      this.shotT = 1.1 * rate;
     }
   }
   destroy(byPlayer = true) {

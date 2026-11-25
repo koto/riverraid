@@ -416,7 +416,7 @@ export class Game {
           ['ship', 0.27],
           ['heli', 0.27],
           ['jet', sector >= 1 ? 0.08 : 0.02],
-          ['turret', sector >= 1 ? 0.13 : 0.04],
+          ['turret', sector >= 1 ? 0.13 : 0],
           ['drone', sector >= 2 ? 0.1 : 0],
           ['powerup', 0.05],
         ];
@@ -474,7 +474,7 @@ export class Game {
   enemyFire(x, y, z, opts = {}) {
     const p = this.player;
     if (!p.alive) return;
-    const speed = opts.speed || 52 + clamp(this.sector / 8, 0, 1) * 28;
+    const speed = opts.speed || 44 + clamp(this.sector / 8, 0, 1) * 32;
     let tx = p.x, tz = p.z;
     const dist = Math.hypot(tx - x, tz - z);
     const t = dist / (speed + p.speed);
@@ -493,6 +493,17 @@ export class Game {
     this.eBullets.push({ x, y, z, vx, vz, kind, mesh: m, life: opts.life || 4, homing: !!opts.homing, t: 0 });
   }
 
+  destroyEnemyBullet(j, fx) {
+    const b = this.eBullets[j];
+    if (fx) {
+      this.effects.explosion(b.x, b.y, b.z, 0.35, 0xff40d0);
+      this.audio.hit();
+    }
+    this.scene.remove(b.mesh);
+    this.ebPool[b.kind].push(b.mesh);
+    this.eBullets.splice(j, 1);
+  }
+
   clearEnemyBullets(fx) {
     for (const b of this.eBullets) {
       if (fx) this.effects.sparks(b.x, b.y, b.z, 4, 0xff6655, 8);
@@ -508,12 +519,12 @@ export class Game {
       const b = this.eBullets[i];
       b.life -= dt;
       b.t += dt;
-      if (b.homing && b.t > 0.4 && b.t < 3 && p.alive) {
+      if (b.homing && b.t > 0.4 && b.t < 2.2 && p.alive) {
         const sp = Math.hypot(b.vx, b.vz);
         let ang = Math.atan2(b.vx, b.vz);
         const diff = wrapAngle(Math.atan2(p.x - b.x, p.z - b.z) - ang);
-        ang += clamp(diff, -1.8 * dt, 1.8 * dt);
-        const ns = Math.min(55, sp + 20 * dt);
+        ang += clamp(diff, -1.25 * dt, 1.25 * dt);
+        const ns = Math.min(46, sp + 16 * dt);
         b.vx = Math.sin(ang) * ns;
         b.vz = Math.cos(ang) * ns;
         b.mesh.rotation.y += dt * 8;
@@ -526,7 +537,7 @@ export class Game {
       let remove = b.life <= 0 || b.z > p.z + 30;
       if (!remove && p.alive && this.state === 'playing') {
         const dx = b.x - p.x, dz = b.z - p.z;
-        if (dx * dx + dz * dz < 2.3 * 2.3) {
+        if (dx * dx + dz * dz < 1.9 * 1.9) {
           remove = true;
           if (p.shield > 0) {
             this.effects.sparks(b.x, b.y, b.z, 10, 0x66bbff, 12);
@@ -564,7 +575,7 @@ export class Game {
     }
     for (const e of this.entities) {
       if (!e.alive || (!e.active && e.kind !== 'powerup')) continue;
-      if (!e.hits(p.x, p.z, 1.7)) continue;
+      if (!e.hits(p.x, p.z, e.kind === 'powerup' || e.kind === 'fuel' ? 1.7 : 1.3)) continue;
       if (e.kind === 'powerup') {
         this.collect(e.type, e);
         e.dispose();
@@ -671,6 +682,11 @@ export class Game {
     this.hud.message('WARNING', boss.name + ' APPROACHING', 3, 'bad');
     this.audio.bossWarn();
     this.audio.intensity = 1;
+    // supply drop for the fight
+    const p = this.player;
+    const owned = ['spread', 'homing', 'laser'];
+    this.spawnPowerup(p.x - 8, p.z - 45, 'shield');
+    this.spawnPowerup(p.x + 8, p.z - 45, owned[Math.floor(Math.random() * owned.length)]);
   }
 
   bossDefeated(boss) {

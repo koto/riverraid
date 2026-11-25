@@ -190,6 +190,26 @@ export class Weapons {
           break;
         }
       }
+      if (!hit) {
+        // enemy homing missiles can be shot down
+        const eb = g.eBullets;
+        for (let j = eb.length - 1; j >= 0; j--) {
+          const m = eb[j];
+          if (!m.homing) continue;
+          const dx = m.x - b.x, dz = m.z - b.z;
+          if (dx * dx + dz * dz < 2.2 * 2.2) {
+            g.destroyEnemyBullet(j, true);
+            g.addScore(25, m.x, m.y, m.z);
+            hit = true;
+            break;
+          }
+        }
+        if (hit) {
+          this.pools[b.type].put(b.mesh);
+          this.bullets.splice(i, 1);
+          continue;
+        }
+      }
       if (hit) {
         hit.damage(b.dmg * (p.overdrive > 0 ? 1.25 : 1));
         g.effects.sparks(b.x, b.y, b.z, b.type === 'missile' ? 14 : 5, b.type === 'missile' ? 0xff60e0 : 0xffcc66);

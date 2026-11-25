@@ -34,6 +34,16 @@ export class River {
     let iw = 0;
     if (hw > 28 && r() < 0.5) iw = 3 + r() * (hw - 22);
     if (d < 160) { hw = 32; cx = 0; iw = 0; }
+    // Fairness: limit how fast channel edges can move (edge slope <= ~0.5 with smoothstep)
+    const budget = len * 0.34;
+    let dcx = cx - from.cx;
+    if (Math.abs(dcx) > budget * 0.7) dcx = Math.sign(dcx) * budget * 0.7;
+    cx = from.cx + dcx;
+    const rest = Math.max(0, budget - Math.abs(dcx));
+    const dhw = clamp(hw - from.hw, -rest, rest);
+    hw = from.hw + dhw;
+    const diw = clamp(iw - from.iw, -rest, rest);
+    iw = from.iw + diw;
     this.seg = { start: d, end: d + len, from, to: { cx, hw, iw } };
   }
 
@@ -51,7 +61,7 @@ export class River {
     const k = Math.round(d / S);
     if (k >= 1) {
       const dist = Math.abs(d - k * S);
-      const b = 1 - smoothstep(25, 85, dist);
+      const b = 1 - smoothstep(25, 150, dist);
       hw = lerp(hw, CFG.BRIDGE_HW, b);
       iw = lerp(iw, 0, clamp(b * 2, 0, 1));
     }
@@ -59,7 +69,7 @@ export class River {
     const kb = Math.ceil(d / S);
     if (isBossSector(kb)) {
       const c = kb * S - CFG.BOSS_OFFSET;
-      const b = 1 - smoothstep(120, 200, Math.abs(d - c));
+      const b = 1 - smoothstep(110, 240, Math.abs(d - c));
       hw = lerp(hw, 42, b);
       iw = lerp(iw, 0, clamp(b * 2, 0, 1));
       cx = lerp(cx, clamp(cx, -25, 25), b);

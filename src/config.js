@@ -3,7 +3,7 @@ export const CFG = {
   SECTOR_LEN: 1100, // distance between bridges
   BRIDGE_HW: 15, // river half-width at bridges
   BOSS_EVERY: 3, // a boss guards every Nth bridge
-  BOSS_OFFSET: 300, // boss sits this far before its bridge
+  BOSS_OFFSET: 380, // boss sits this far before its bridge
   BOSS_LOCK: 82, // player can't get closer than this to a living boss
   CHUNK_LEN: 96,
   VIEW_AHEAD: 400,
